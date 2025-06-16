@@ -12,7 +12,8 @@ class RoomController extends Controller
      */
     public function index()
     {
-        //
+        $rooms = Room::all(); // Ambil semua data ruangan
+        return view('map.index', compact('rooms'));
     }
 
     /**

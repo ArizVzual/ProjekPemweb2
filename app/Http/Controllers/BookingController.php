@@ -51,25 +51,30 @@ class BookingController extends Controller
 
     // Admin: Verifikasi Pemesanan
     public function approve($id)
-    {
-        $booking = Booking::findOrFail($id);
-        $booking->update(['status' => 'diterima']);
+{
+    $booking = Booking::findOrFail($id);
+    $booking->status = 'approved';
+    $booking->save();
 
-        return back()->with('success', 'Pemesanan disetujui.');
-    }
+    return redirect()->back()->with('status', 'Pesanan berhasil disetujui.');
+}
 
-    public function reject($id)
-    {
-        $booking = Booking::findOrFail($id);
-        $booking->update(['status' => 'ditolak']);
+public function reject($id)
+{
+    $booking = Booking::findOrFail($id);
+    $booking->status = 'rejected';
+    $booking->save();
 
-        return back()->with('error', 'Pemesanan ditolak.');
-    }
+    return redirect()->back()->with('status', 'Pesanan ditolak.');
+}
+
 
     // Admin: Tampilkan semua booking
+    // app/Http/Controllers/BookingController.php
     public function adminIndex()
     {
-        $bookings = Booking::with(['user', 'room'])->latest()->get();
+        $bookings = Booking::with('user', 'room')->orderBy('created_at', 'desc')->get();
         return view('admin.bookings.index', compact('bookings'));
     }
+
 }

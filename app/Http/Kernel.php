@@ -47,8 +47,9 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'admin' => \App\Http\Middleware\AdminMiddleware::class, // <--- kamu tambahkan ini
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
     ];
+
 }
