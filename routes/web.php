@@ -1,49 +1,80 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\{
+    BookingController,
+    RoomController,
+    ScheduleController,
+    DashboardController,
+    Auth\RegisteredUserController,
+    Auth\AuthenticatedSessionController
+};
 
-// Admin - Booking routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/bookings', [BookingController::class, 'adminIndex'])->name('admin.bookings');
-    Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
-    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
-});
+// ⏩ Halaman utama dashboard (redirect berdasarkan role)
+// ✅ YANG BARU: langsung ke dashboard umum tanpa login
+Route::get('/', [DashboardController::class, 'index'])->name('home');
 
-// Jadwal untuk user biasa
-Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedules.index');
+// Login dan Register manual (kalau belum pakai Fortify full)
+Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-// Admin - Jadwal
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/schedules', [ScheduleController::class, 'adminIndex'])->name('admin.schedules.index');
-    Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('admin.schedules.create');
-    Route::post('/schedules', [ScheduleController::class, 'store'])->name('admin.schedules.store');
-});
+Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+Route::post('/register', [RegisteredUserController::class, 'store']);
 
-// Booking dan Room untuk user biasa
+// Redirect berdasarkan role setelah login
+Route::get('/redirect-dashboard', function () {
+    $user = Auth::user();
+
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.bookings');
+    }
+
+    return redirect()->route('dashboard');
+})->middleware(['auth'])->name('redirect.dashboard');
+
+// 🧑‍💻 Dashboard user biasa
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('dashboard');
+
+// 👥 Admin Routes
+// routes/web.php
+Route::middleware(['auth']) // hilangkan 'admin'
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('bookings', BookingController::class);
+    });
+
+
+// 📆 Jadwal user
+Route::get('/jadwal', [ScheduleController::class, 'index'])->name('jadwal');
+
+// 🏠 Peta kampus
+Route::get('/peta', [RoomController::class, 'index'])->name('peta');
+
+// 📚 User Routes (Booking dan Room)
 Route::middleware(['auth'])->group(function () {
     Route::resource('rooms', RoomController::class);
     Route::resource('bookings', BookingController::class);
 });
 
-// Peta (semua bisa akses)
-Route::get('/peta', function () {
-    return view('peta');
-})->name('peta');
+Route::get('/map', [RoomController::class, 'index'])->name('map.index');
+Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
 
-// Route login manual (hanya sementara)
-Route::get('/login', function () {
-    return 'Silakan login dulu.';
-})->name('login');
+Route::get('/rooms/available', [RoomController::class, 'available'])->name('rooms.available');
 
-Route::get('/', function () {
-    return view('dashboard');
-})->name('home');
+Route::get('/bookings/history', [BookingController::class, 'history'])->name('bookings.history');
 
-Route::get('/', [DashboardController::class, 'index'])->name('home');
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 
+Route::prefix('admin')->middleware('auth')->group(function () {
+    Route::get('/bookings', [AdminBookingController::class, 'index'])->name('admin.bookings.index');
+    Route::post('/bookings/{id}/approve', [AdminBookingController::class, 'approve'])->name('admin.bookings.approve');
+    Route::post('/bookings/{id}/reject', [AdminBookingController::class, 'reject'])->name('admin.bookings.reject');
+});
 
+require __DIR__.'/auth.php';

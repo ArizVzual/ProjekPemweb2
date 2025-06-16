@@ -10,18 +10,32 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up()
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('nim')->unique()->after('name');
-        $table->string('role')->default('user')->after('email');
-    });
-}
+    {
+        Schema::table('users', function (Blueprint $table) {
+            // Tambahkan NIM setelah kolom name
+            if (!Schema::hasColumn('users', 'nim')) {
+                $table->string('nim')->unique()->after('name');
+            }
 
-public function down()
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn(['nim', 'role']);
-    });
-}
+            // Tambahkan role setelah kolom nim
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->string('role')->default('user')->after('nim');
+            }
+        });
+    }
 
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            if (Schema::hasColumn('users', 'nim')) {
+                $table->dropColumn('nim');
+            }
+            if (Schema::hasColumn('users', 'role')) {
+                $table->dropColumn('role');
+            }
+        });
+    }
 };

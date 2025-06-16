@@ -1,40 +1,40 @@
-@extends('layouts.app')
 
-@push('styles')
+
+<?php $__env->startPush('styles'); ?>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Dashboard</h2>
-        @guest
+        <?php if(auth()->guard()->guest()): ?>
             <div>
-                <a href="{{ url('/login?as=user') }}" class="btn btn-outline-primary me-2">Login sebagai User</a>
-                <a href="{{ url('/login?as=admin') }}" class="btn btn-outline-danger">Login sebagai Admin</a>
+                <a href="<?php echo e(url('/login?as=user')); ?>" class="btn btn-outline-primary me-2">Login sebagai User</a>
+                <a href="<?php echo e(url('/login?as=admin')); ?>" class="btn btn-outline-danger">Login sebagai Admin</a>
             </div>
-        @else
+        <?php else: ?>
             <div class="d-flex align-items-center gap-2">
-                @if(Auth::user()->role === 'user')
-                    <a href="{{ route('bookings.create') }}" class="btn btn-dark">Pesan Ruangan</a>
-                @endif
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
+                <?php if(Auth::user()->role === 'user'): ?>
+                    <a href="<?php echo e(route('bookings.create')); ?>" class="btn btn-dark">Pesan Ruangan</a>
+                <?php endif; ?>
+                <form method="POST" action="<?php echo e(route('logout')); ?>">
+                    <?php echo csrf_field(); ?>
                     <button type="submit" class="btn btn-outline-danger">Logout</button>
                 </form>
             </div>
-        @endguest
+        <?php endif; ?>
     </div>
 
-    {{-- Tombol Navigasi --}}
+    
     <div class="row mb-4">
         <div class="col-md-4 mb-2">
             <div class="card text-center bg-success text-white h-100">
                 <div class="card-body">
                     <h5 class="card-title">Cari Ruangan Kosong</h5>
                     <p class="card-text">Lihat ruangan yang tersedia saat ini</p>
-                    <a href="{{ route('rooms.available') }}" class="btn btn-light btn-sm">Lihat Sekarang</a>
+                    <a href="<?php echo e(route('rooms.available')); ?>" class="btn btn-light btn-sm">Lihat Sekarang</a>
                 </div>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Rating & Ulasan</h5>
                     <p class="card-text">Lihat pengalaman pengguna lain</p>
-                    <a href="{{ route('reviews.index') }}" class="btn btn-dark btn-sm">Lihat Ulasan</a>
+                    <a href="<?php echo e(route('reviews.index')); ?>" class="btn btn-dark btn-sm">Lihat Ulasan</a>
                 </div>
             </div>
         </div>
@@ -52,19 +52,19 @@
                 <div class="card-body">
                     <h5 class="card-title">Riwayat Pemakaian</h5>
                     <p class="card-text">Lihat pemakaian ruangan sebelumnya</p>
-                    <a href="{{ route('bookings.history') }}" class="btn btn-light btn-sm">Cek Riwayat</a>
+                    <a href="<?php echo e(route('bookings.history')); ?>" class="btn btn-light btn-sm">Cek Riwayat</a>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Peta --}}
+    
     <h4>Lokasi Ruangan (Peta)</h4>
     <div class="mb-5">
         <div id="map" style="height: 600px;"></div>
     </div>
 
-    {{-- Jadwal Kegiatan --}}
+    
     <h4>Jadwal Kegiatan Ruangan</h4>
     <div class="row mb-4">
         <div class="col-md-4">
@@ -87,21 +87,21 @@
         </div>
     </div>
 
-    {{-- Komentar --}}
+    
     <h4>Ulasan Singkat</h4>
     <div class="mb-4">
-        @foreach (['Bryan', 'Alex', 'Sandra'] as $name)
+        <?php $__currentLoopData = ['Bryan', 'Alex', 'Sandra']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <div class="card bg-primary text-white mb-2">
             <div class="card-body">
-                <h6 class="card-title mb-1">{{ $name }} ★★★★☆</h6>
+                <h6 class="card-title mb-1"><?php echo e($name); ?> ★★★★☆</h6>
                 <p class="card-text">Komentar pengguna.</p>
             </div>
         </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         <button class="btn btn-outline-secondary btn-sm">See more...</button>
     </div>
 
-    {{-- Tabel Kapasitas --}}
+    
     <h4>Daftar Ruangan & Kapasitas</h4>
     <div class="mb-4">
         <table class="table table-striped">
@@ -121,9 +121,9 @@
     </div>
 
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var map = L.map('map').setView([-3.2991, 114.5858], 17); // Fokus ke lokasi ULM
@@ -132,15 +132,17 @@ document.addEventListener('DOMContentLoaded', function () {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    @foreach ($rooms as $room)
-        var marker = L.marker([{{ $room->latitude }}, {{ $room->longitude }}]).addTo(map);
+    <?php $__currentLoopData = $rooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        var marker = L.marker([<?php echo e($room->latitude); ?>, <?php echo e($room->longitude); ?>]).addTo(map);
         marker.bindPopup(`
-            <b>{{ $room->nama }}</b><br>
-            Kapasitas: {{ $room->kapasitas }}<br>
-            {{ $room->deskripsi }}<br>
-            <a href="{{ route('bookings.create') }}?room_id={{ $room->id }}" class="btn btn-sm btn-primary mt-2">Pesan Ruangan</a>
+            <b><?php echo e($room->nama); ?></b><br>
+            Kapasitas: <?php echo e($room->kapasitas); ?><br>
+            <?php echo e($room->deskripsi); ?><br>
+            <a href="<?php echo e(route('bookings.create')); ?>?room_id=<?php echo e($room->id); ?>" class="btn btn-sm btn-primary mt-2">Pesan Ruangan</a>
         `);
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\projek_pemweb\ulm_realtime\resources\views/dashboard/index.blade.php ENDPATH**/ ?>
