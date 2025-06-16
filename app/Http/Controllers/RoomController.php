@@ -63,4 +63,19 @@ class RoomController extends Controller
     {
         //
     }
+
+    public function available()
+{
+    // Misal logika sederhana: ambil ruangan yang belum ada booking hari ini
+    $today = now()->toDateString();
+
+    $usedRoomIds = \App\Models\Booking::whereDate('tanggal', $today)
+        ->pluck('room_id')
+        ->toArray();
+
+    $availableRooms = Room::whereNotIn('id', $usedRoomIds)->get();
+
+    return view('rooms.available', compact('availableRooms'));
+}
+
 }

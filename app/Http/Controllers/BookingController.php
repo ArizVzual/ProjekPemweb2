@@ -30,23 +30,22 @@ class BookingController extends Controller
     // Simpan pemesanan
     public function store(Request $request)
     {
-        $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'tanggal' => 'required|date',
-            'jam_mulai' => 'required',
-            'jam_selesai' => 'required|after:jam_mulai',
-        ]);
+         $request->validate([
+        'nama_ruangan' => 'required|string|max:255',
+        'tanggal' => 'required|date',
+        'waktu' => 'required',
+    ]);
 
         Booking::create([
-            'user_id' => Auth::id(),
-            'room_id' => $request->room_id,
-            'tanggal' => $request->tanggal,
-            'jam_mulai' => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
-            'status' => 'pending',
-        ]);
+        'user_id' => Auth::id(),
+        'nama_ruangan' => $request->nama_ruangan,
+        'tanggal' => $request->tanggal,
+        'waktu' => $request->waktu,
+        'status' => 'pending',
+    ]);
 
-        return redirect()->route('bookings.index')->with('success', 'Pemesanan berhasil dibuat.');
+
+        return redirect()->back()->with('success', 'Permohonan pemesanan telah dikirim!');
     }
 
     // Admin: Verifikasi Pemesanan
@@ -76,5 +75,14 @@ public function reject($id)
         $bookings = Booking::with('user', 'room')->orderBy('created_at', 'desc')->get();
         return view('admin.bookings.index', compact('bookings'));
     }
+
+    public function history()
+{
+    // Misal kamu ingin menampilkan data booking user yang sedang login
+    $bookings = auth()->user()->bookings()->latest()->get();
+
+    return view('bookings.history', compact('bookings'));
+}
+
 
 }

@@ -6,22 +6,16 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function store(Request $request)
+    public function index()
 {
-    $request->validate([
-        'room_id' => 'required|exists:rooms,id',
-        'rating' => 'required|integer|min:1|max:5',
-        'comment' => 'nullable|string'
-    ]);
+    $reviews = [
+        ['user' => 'Bryan', 'rating' => 4, 'comment' => 'Bagus dan bersih.'],
+        ['user' => 'Alex', 'rating' => 5, 'comment' => 'Sangat nyaman untuk rapat.'],
+        ['user' => 'Sandra', 'rating' => 3, 'comment' => 'Perlu AC tambahan.'],
+    ];
 
-    Review::create([
-        'user_id' => auth()->id(),
-        'room_id' => $request->room_id,
-        'rating' => $request->rating,
-        'comment' => $request->comment
-    ]);
-
-    return back()->with('success', 'Ulasan berhasil dikirim!');
+    return view('reviews.index', compact('reviews'));
 }
+
 
 }
